@@ -25,7 +25,7 @@ namespace LeaveManagementSystem.Web.Controllers
         }
 
         // GET: LeaveTypes/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id)//ovo id se gadja sa 35. linijom u Index.cshtml;asp-route-id
         {
             if (id == null)
             {
@@ -59,7 +59,7 @@ namespace LeaveManagementSystem.Web.Controllers
             {
                 _context.Add(leaveType);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));//nameof zato sto ako se nekad promeni ime metode Index, da bi izbacilo gresku
             }
             return View(leaveType);
         }
@@ -134,9 +134,9 @@ namespace LeaveManagementSystem.Web.Controllers
         }
 
         // POST: LeaveTypes/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("Delete")]//post metode se uvek pozivaju iz form u odgovarajucih views-a kad se submituje;30. linija u Delete.cshtml
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)//u ruti je Delete,a ne DeleteConfirmed, zbog ActionName
         {
             var leaveType = await _context.LeaveTypes.FindAsync(id);
             if (leaveType != null)
