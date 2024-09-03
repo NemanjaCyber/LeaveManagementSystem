@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace LeaveManagementSystem.Web.Areas.Identity.Pages.Account
@@ -24,6 +25,7 @@ namespace LeaveManagementSystem.Web.Areas.Identity.Pages.Account
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserStore<ApplicationUser> _userStore;
         private readonly IUserEmailStore<ApplicationUser> _emailStore;
@@ -34,6 +36,7 @@ namespace LeaveManagementSystem.Web.Areas.Identity.Pages.Account
             UserManager<ApplicationUser> userManager,
             IUserStore<ApplicationUser> userStore,
             SignInManager<ApplicationUser> signInManager,
+            RoleManager<IdentityRole> roleManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
@@ -41,6 +44,7 @@ namespace LeaveManagementSystem.Web.Areas.Identity.Pages.Account
             _userStore = userStore;
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
+            this._roleManager = roleManager;
             _logger = logger;
             _emailSender = emailSender;
         }
@@ -50,7 +54,9 @@ namespace LeaveManagementSystem.Web.Areas.Identity.Pages.Account
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } = new InputModel();
+
+        public string[] RoleNames { get; set; }//ovde je zato sto to nije data koji prikazujemo, pa ne treba biti u model
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -97,6 +103,23 @@ namespace LeaveManagementSystem.Web.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            [Required]//ova tri smo mi dodali, da vi se u view mogle da registruje Input.FirstName i ostalo
+            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [Display(Name = "FirstName")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+            [Display(Name = "LastName")]
+            public string LastName { get; set; }
+
+            [Required]
+            [DataType(DataType.Date)]
+            [Display(Name = "Date Of Birth")]
+            public DateOnly DateOfBirth { get; set; }
+
+            public string RoleName { get; set; }
         }
 
 
@@ -104,6 +127,11 @@ namespace LeaveManagementSystem.Web.Areas.Identity.Pages.Account
         {
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            var roles = await _roleManager.Roles//iz baze podataka uzimamo roles koje imamo sve sem Administrator
+                .Select(q => q.Name)
+                .Where(q => q != "Administrator")
+                .ToArrayAsync();
+            RoleNames = roles;//i ubacujemo ih u view model
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
@@ -116,11 +144,24 @@ namespace LeaveManagementSystem.Web.Areas.Identity.Pages.Account
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+                user.DateOfBirth = Input.DateOfBirth;//dodajemo i custom polja
+                user.LastName = Input.LastName;
+                user.FirstName=Input.FirstName;
+
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
+                    
+                    if(Input.RoleName==Roles.Supervisor)//!!! Dodela vise rola u odnosu na odabrani role
+                    {//i u bazi u tabeli UsersRoles ce se sve lepo povezati
+                        await _userManager.AddToRolesAsync(user, [Roles.Employee, Roles.Supervisor]);
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, Roles.Employee);
+                    }
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -151,6 +192,11 @@ namespace LeaveManagementSystem.Web.Areas.Identity.Pages.Account
             }
 
             // If we got this far, something failed, redisplay form
+            var roles = await _roleManager.Roles//kopirano ovde. Treba da bi se stranica lepo ucitala kad je registravija fail
+                .Select(q => q.Name)
+                .Where(q => q != "Administrator")
+                .ToArrayAsync();
+            RoleNames = roles;
             return Page();
         }
 

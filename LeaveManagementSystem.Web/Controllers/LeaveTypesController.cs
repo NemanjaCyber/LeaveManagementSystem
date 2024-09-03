@@ -9,9 +9,12 @@ using LeaveManagementSystem.Web.Data;
 using LeaveManagementSystem.Web.Models.LeaveTypes;
 using AutoMapper;
 using LeaveManagementSystem.Web.Services;
+using Microsoft.AspNetCore.Authorization;
+using LeaveManagementSystem.Web.Common;
 
 namespace LeaveManagementSystem.Web.Controllers
 {
+    [Authorize(Roles=Roles.Administrator)]//ogranicenje controlera za odredjeni role
     public class LeaveTypesController(ILeaveTypesService _leaveTypesService) : Controller
     {
     
