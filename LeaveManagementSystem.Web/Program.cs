@@ -20,6 +20,7 @@ builder.Services.AddScoped<ILeaveTypesService, LeaveTypesService>();//registrova
 builder.Services.AddScoped<ILeaveAllocationsService, LeaveAllocationsService>();
 builder.Services.AddTransient<IEmailSender, EmailSender>();//registrovali smo mail servis
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());//registrovali smo mapper
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()//dodali
