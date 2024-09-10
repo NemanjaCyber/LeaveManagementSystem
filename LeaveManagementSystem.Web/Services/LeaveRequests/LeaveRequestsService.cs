@@ -25,7 +25,7 @@ namespace LeaveManagementSystem.Web.Services.LeaveRequests
             leaveRequest.EmployeeId = user.Id;
 
             //stavi leaverequeststatus na pending
-            leaveRequest.LeaveRequestStatusId=(int)LeaveRequestStatus.Pending;
+            leaveRequest.LeaveRequestStatusId=(int)LeaveRequestStatusEnum.Pending;
 
             //sacuvaj
             _context.LeaveRequests.Add(leaveRequest);
@@ -39,14 +39,30 @@ namespace LeaveManagementSystem.Web.Services.LeaveRequests
             await _context.SaveChangesAsync();
         }
 
-        public Task<LeaveRequestListVM> GetAllLeaveRequests()
+        public Task<EmployeeLeaveRequestListVM> AdminGetAllLeaveRequests()
         {
             throw new NotImplementedException();
         }
 
-        public Task<EmployeeLeaveRequestListVM> GetEmployeeLeaveRequests()
+        public async Task<List<LeaveRequestReadOnlyVM>> GetEmployeeLeaveRequests()
         {
-            throw new NotImplementedException();
+            var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User);
+            var leaveRequests = await _context.LeaveRequests
+                .Include(q=>q.LeaveType)
+                .Where(q => q.EmployeeId == user.Id)
+                .ToListAsync();
+            var model = leaveRequests.Select(q => new LeaveRequestReadOnlyVM
+            {
+                StartDate = q.StartDate,
+                EndDate = q.EndDate,
+                Id = q.Id,
+                LeaveType = q.LeaveType.Name,
+                LeaveRequestStatus = (LeaveRequestStatusEnum)q.LeaveRequestStatusId,
+                NumberOfDays = q.EndDate.DayNumber - q.StartDate.DayNumber
+            }).ToList();
+
+            return model;
+
         }
 
         public Task ReviewLeaveRequest(ReviewListRequestVM model)
