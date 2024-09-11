@@ -40,9 +40,14 @@ namespace LeaveManagementSystem.Web.Services.LeaveRequests
             _context.LeaveRequests.Add(leaveRequest);
 
             //smanji broj dana u zavisnosti od zahteva
+            var currentDate = DateTime.Now;
+            var period = await _context.Periods.SingleAsync(q => q.EndDate.Year == currentDate.Year);
             var numberOfDays = model.EndDate.DayNumber - model.StartDate.DayNumber;
             var allocationToDeduct = await _context.LeaveAllocations
-                .FirstOrDefaultAsync(q => q.LeaveTypeId == model.LeaveTypeId && q.EmployeeId == user.Id);
+                .FirstOrDefaultAsync(q => q.LeaveTypeId == model.LeaveTypeId
+                && q.EmployeeId == user.Id
+                && q.PeriodId==period.Id);
+
             allocationToDeduct.Days -= numberOfDays;
 
             await _context.SaveChangesAsync();
@@ -113,9 +118,14 @@ namespace LeaveManagementSystem.Web.Services.LeaveRequests
 
             if(!approved)
             {
+                var currentDate = DateTime.Now;
+                var period = await _context.Periods.SingleAsync(q => q.EndDate.Year == currentDate.Year);
+
                 var numberOfDays = leaveRequest.EndDate.DayNumber - leaveRequest.StartDate.DayNumber;
                 var allocation = await _context.LeaveAllocations
-                .FirstOrDefaultAsync(q => q.LeaveTypeId == leaveRequest.LeaveTypeId && q.EmployeeId == leaveRequest.EmployeeId);
+                .FirstOrDefaultAsync(q => q.LeaveTypeId == leaveRequest.LeaveTypeId
+                && q.EmployeeId == leaveRequest.EmployeeId
+                && q.PeriodId==period.Id);
                 allocation.Days += numberOfDays;
             }
 
@@ -158,9 +168,13 @@ namespace LeaveManagementSystem.Web.Services.LeaveRequests
         public async Task<bool> RequestDatesExceedAllocation(LeaveRequestCreateVM model)
         {
             var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User);
+            var currentDate = DateTime.Now;
+            var period = await _context.Periods.SingleAsync(q => q.EndDate.Year == currentDate.Year);
             var numberOfDays = model.EndDate.DayNumber - model.StartDate.DayNumber;
             var allocation = await _context.LeaveAllocations
-                .FirstAsync(q => q.LeaveTypeId == model.LeaveTypeId && q.EmployeeId == user.Id);
+                .FirstAsync(q => q.LeaveTypeId == model.LeaveTypeId 
+                && q.EmployeeId == user.Id
+                && q.PeriodId==period.Id);
             return allocation.Days <numberOfDays;
         }
     }
