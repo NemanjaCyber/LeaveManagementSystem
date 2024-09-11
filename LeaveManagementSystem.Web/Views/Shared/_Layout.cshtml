@@ -35,6 +35,8 @@
                                     <li><a class="dropdown-item text-light " asp-controller="LeaveTypes" asp-action="Index">Leave Types</a></li>
                                     <li><a class="dropdown-item text-light " asp-controller="Periods" asp-action="Index">Periods</a></li>
                                     <li><a class="dropdown-item text-light " asp-controller="LeaveAllocation" asp-action="Index">View Employees</a></li>
+                                    <li><a class="dropdown-item text-light " asp-controller="LeaveRequests" asp-action="ListRequests">Manage Requests</a></li>
+
                                   </ul>
                           </li>
                         }
@@ -62,6 +64,8 @@
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/lib/sweetalert2/sweetalert2.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

@@ -54,26 +54,30 @@ namespace LeaveManagementSystem.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Cancel( int leaveRequestId)
+        public async Task<IActionResult> Cancel(int id)
         {
-            return View();
+            await _leaveRequestsService.CancelLeaveRequest(id);
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> ListRequests()
         {
-            return View();
+            var model = await _leaveRequestsService.AdminGetAllLeaveRequests();
+            return View(model);
         }
 
-        public async Task<IActionResult> Review(int leaveRequestId)
+        public async Task<IActionResult> Review(int id)
         {
-            return View();
+            var model=await _leaveRequestsService.GetLeaveRequestForReview(id);
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Review(/*use VM*/)
+        public async Task<IActionResult> Review(int id,bool approved)
         {
-            return View();
+            await _leaveRequestsService.ReviewLeaveRequest(id, approved);
+            return RedirectToAction(nameof(ListRequests));
         }
     }
 }
