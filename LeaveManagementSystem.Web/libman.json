@@ -5,6 +5,10 @@
     {
       "library": "sweetalert2@11.14.0",
       "destination": "wwwroot/lib/sweetalert2/"
+    },
+    {
+      "library": "jqueryui@1.14.0",
+      "destination": "wwwroot/lib/jqueryui/"
     }
   ]
 }

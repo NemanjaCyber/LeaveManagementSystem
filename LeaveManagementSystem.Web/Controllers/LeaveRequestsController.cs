@@ -60,6 +60,7 @@ namespace LeaveManagementSystem.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Policy ="AdminSupervisorOnly")]//vezivanje za policy koji smo kreirali u program.cs
         public async Task<IActionResult> ListRequests()
         {
             var model = await _leaveRequestsService.AdminGetAllLeaveRequests();
